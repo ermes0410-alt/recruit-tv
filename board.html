@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인재채용부 채용일정</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* TV 화면용: 1920x1080 기준으로 그리고, 실제 화면 크기에 맞춰 비율 그대로 확대/축소합니다. */
+html,body{margin:0;height:100%;background:#0B1118;overflow:hidden}
+body{color:#E8EEF4;font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;box-sizing:border-box;padding:44px 56px 40px}
+*{box-sizing:border-box}
+
+/* 상단 */
+.top{display:flex;align-items:flex-end;justify-content:space-between;height:104px;border-bottom:3px solid #E8EEF4;padding-bottom:18px}
+.top .l{display:flex;align-items:flex-end}
+.date{font-size:76px;font-weight:800;line-height:.9;letter-spacing:-2px}
+.date small{font-size:34px;font-weight:700;color:#FF6A5C;margin-left:12px;letter-spacing:0}
+.ttl{margin-left:36px;padding-bottom:4px}
+.ttl h1{margin:0;font-size:34px;font-weight:700}
+.ttl p{margin:4px 0 0;font-size:22px;color:#93A3B4}
+.clock{font-size:54px;font-weight:700;color:#C9D4DF;font-variant-numeric:tabular-nums;line-height:1}
+
+/* 본문 */
+.main{display:grid;grid-template-columns:1fr 560px;grid-column-gap:40px;height:888px;padding-top:28px}
+.left{display:grid;grid-template-rows:1fr 300px;grid-row-gap:26px;min-width:0}
+.cards{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;grid-gap:22px}
+.card{background:#141D27;border-radius:14px;padding:22px 26px 20px;border-top:7px solid var(--c);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.card .h{display:flex;justify-content:space-between;align-items:baseline}
+.card .nm{font-size:40px;font-weight:800}
+.card .hc{font-size:26px;font-weight:700;color:#C9D4DF}
+.card .hc b{font-size:38px;color:#fff;margin-right:2px}
+.card .mgr{font-size:21px;color:#93A3B4;margin-top:2px}
+.card .now{margin-top:12px;font-size:27px;font-weight:700;display:flex;align-items:center}
+.pill{display:inline-block;font-size:21px;font-weight:800;padding:4px 12px;border-radius:8px;margin-right:12px;background:#26323F;color:#E8EEF4}
+.pill.live{background:#FF5A4E;color:#fff}
+.pill.soon{background:#FFB020;color:#1A1200}
+.pill.done{background:#2E3B48;color:#93A3B4}
+.steps{display:flex;margin-top:auto;padding-top:14px}
+.st{flex:1;min-width:0;position:relative;padding-top:24px}
+.st:before{content:"";position:absolute;left:0;right:0;top:8px;height:4px;background:#2E3B48}
+.st:first-child:before{left:50%}
+.st:last-child:before{right:50%}
+.st.done:before,.st.cur:before{background:var(--c)}
+.st i{position:absolute;left:50%;top:0;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:#2E3B48;border:3px solid #141D27}
+.st.done i{background:var(--c)}
+.st.cur i{background:#fff;border-color:var(--c);width:26px;height:26px;margin-left:-13px;top:-3px;box-shadow:0 0 0 5px rgba(255,255,255,.12)}
+.st span{display:block;text-align:center;font-size:19px;color:#93A3B4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.st em{display:block;text-align:center;font-style:normal;font-size:17px;color:#6F8091;font-variant-numeric:tabular-nums}
+.steps.many .st span{font-size:16px}
+.steps.many .st em{font-size:15px}
+.st.cur span{color:#fff;font-weight:700}
+.st.cur em{color:#E8EEF4}
+.st.done span,.st.done em{color:#6F8091}
+
+/* 타임라인 */
+.tl{background:#141D27;border-radius:14px;padding:16px 22px 14px;position:relative;overflow:hidden}
+.tl h2,.panel h2{margin:0 0 10px;font-size:24px;font-weight:700;color:#C9D4DF}
+.tl-body{position:relative;height:226px}
+.tl-row{z-index:1}
+.tl-axis{position:absolute;left:150px;right:0;top:0;height:30px}
+.tl-axis div{position:absolute;top:0;font-size:17px;color:#93A3B4;white-space:nowrap;border-left:1px solid #2E3B48;padding-left:6px;height:226px}
+.tl-axis div.m{color:#E8EEF4;font-weight:700}
+.tl-row{position:absolute;left:0;right:0;height:44px}
+.tl-row .lb{position:absolute;left:0;width:140px;top:8px;font-size:22px;font-weight:700;white-space:nowrap;overflow:hidden}
+.tl-row .lb:before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--c);margin-right:8px;vertical-align:2px}
+.tl-track{position:absolute;left:150px;right:0;top:0;bottom:0}
+.bar{position:absolute;top:8px;height:28px;border-radius:5px;background:var(--c);font-size:16px;font-weight:700;color:#0B1118;line-height:28px;padding:0 6px;white-space:nowrap;overflow:hidden}
+.bar.past{opacity:.35}
+.bar.pt{width:16px;height:16px;top:14px;border-radius:50%;padding:0;background:#0B1118;border:4px solid var(--c)}
+.today-ln{position:absolute;top:0;bottom:0;width:3px;background:#FF5A4E;z-index:2}
+.today-ln span{position:absolute;bottom:-4px;left:6px;font-size:16px;font-weight:800;color:#FF6A5C;white-space:nowrap}
+
+/* 오른쪽 */
+.right{display:grid;grid-template-rows:auto 1fr auto;grid-row-gap:22px;min-height:0}
+.panel{background:#141D27;border-radius:14px;padding:20px 24px;min-height:0;overflow:hidden}
+.today-box{background:#1D1416;border:2px solid #FF5A4E}
+.today-box h2{color:#FF8A7E}
+.ag{list-style:none;margin:0;padding:0}
+.ag li{display:flex;align-items:center;padding:11px 0;border-top:1px solid #243140}
+.ag li:first-child{border-top:0}
+.ag .d{width:118px;flex:none;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.ag .d small{display:block;font-size:17px;color:#93A3B4;font-weight:500}
+.ag .dot{width:14px;height:14px;border-radius:50%;background:var(--c);flex:none;margin-right:14px}
+.ag .w{flex:1;min-width:0;font-size:25px;line-height:1.25}
+.ag .w b{font-weight:700}
+.ag .w div{font-size:18px;color:#93A3B4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag .dd{flex:none;font-size:20px;font-weight:800;padding:4px 10px;border-radius:7px;background:#26323F;margin-left:10px}
+.ag .dd.hot{background:#FFB020;color:#1A1200}
+.empty{font-size:22px;color:#6F8091;padding:6px 0}
+.clash li{display:block;background:#2A2010;color:#FFC56B;border-radius:9px;padding:10px 14px;margin-bottom:8px;font-size:19px;line-height:1.35}
+.clash li b{font-size:21px;margin-right:8px}
+.foot{position:absolute;right:56px;bottom:12px;font-size:15px;color:#5A6A7A}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="top">
+    <div class="l">
+      <div class="date" id="date"></div>
+      <div class="ttl"><h1>인재채용부 채용일정 현황</h1><p id="sub"></p></div>
+    </div>
+    <div class="clock" id="clock"></div>
+  </div>
+  <div class="main">
+    <div class="left">
+      <div class="cards" id="cards"></div>
+      <div class="tl"><h2>전형 타임라인 <span style="font-weight:400;color:#6F8091;font-size:19px">지난 2주 ~ 앞으로 6주</span></h2><div class="tl-body" id="tl"></div></div>
+    </div>
+    <div class="right">
+      <div class="panel today-box"><h2>오늘</h2><ul class="ag" id="today"></ul></div>
+      <div class="panel"><h2>다가오는 일정 <span style="font-weight:400;color:#6F8091;font-size:19px">2주</span></h2><ul class="ag" id="soon"></ul></div>
+      <div class="panel"><h2>일정 겹침 <span style="font-weight:400;color:#6F8091;font-size:19px">필기·면접</span></h2><ul class="ag clash" id="clash"></ul></div>
+    </div>
+  </div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* =====================================================================
+   채용 기초데이터 — 엑셀과 같은 순서입니다.
+   일정이 바뀌면 이 부분만 고치면 됩니다. (날짜는 'YYYY-MM-DD', 하루짜리는 시작=종료)
+   ===================================================================== */
+var UPDATED = '2026-11-09';
+var DATA = [
+  { name:'대졸', mgr:['서영남','박규태'], headcount:490, color:'#5B8CFF', steps:[
+    ['지원서접수','2026-09-09','2026-09-16'],
+    ['서류전형','2026-09-23','2026-09-23'],
+    ['필기전형','2026-10-17','2026-10-17'],
+    ['면접전형','2026-11-09','2026-11-27'],
+    ['합격자발표','2026-12-03','2026-12-03'] ]},
+  { name:'보훈', mgr:['이종혁','변성준'], headcount:20, color:'#B48CFF', steps:[
+    ['지원서접수','2026-09-29','2026-10-06'],
+    ['필기전형','2026-10-30','2026-10-30'],
+    ['종합면접','2026-11-05','2026-11-06'],
+    ['합격자발표','2026-11-18','2026-11-18'] ]},
+  { name:'4전문', mgr:['문한길','이화정'], headcount:7, color:'#3FD0B0', steps:[
+    ['지원서접수','2026-09-30','2026-10-06'],
+    ['서류전형','2026-10-27','2026-10-27'],
+    ['필기전형','2026-11-07','2026-11-07'],
+    ['역량면접','2026-11-12','2026-11-12'],
+    ['종합면접','2026-11-26','2026-11-26'],
+    ['합격자발표','2026-12-03','2026-12-03'] ]},
+  { name:'청년인턴', mgr:['백형조','이화정'], headcount:450, color:'#FFB020', steps:[
+    ['지원서접수','2026-10-29','2026-11-05'],
+    ['서류전형','2026-11-09','2026-11-09'],
+    ['종합면접','2026-11-16','2026-11-20'],
+    ['합격자발표','2026-11-26','2026-11-26'] ]}
+];
+/* ===================================================================== */
+
+var WD = ['일','월','화','수','목','금','토'];
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function pad(n){ return (n<10?'0':'')+n; }
+function dnum(k){ var a=k.split('-'); return Math.round(Date.UTC(+a[0],a[1]-1,+a[2])/86400000); }
+function fromNum(n){ var d=new Date(n*86400000); return d; } // UTC
+function md(n){ var d=fromNum(n); return (d.getUTCMonth()+1)+'.'+d.getUTCDate()+'('+WD[d.getUTCDay()]+')'; }
+function mdShort(n){ var d=fromNum(n); return (d.getUTCMonth()+1)+'.'+d.getUTCDate(); }
+function todayNum(){ var t=new Date(); return Math.round(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())/86400000); }
+function kind(label){
+  if (/접수/.test(label)) return 'apply';
+  if (/필기|실기/.test(label)) return 'exam';
+  if (/면접/.test(label)) return 'interview';
+  if (/발표|서류/.test(label)) return 'point';
+  return 'etc';
+}
+
+// 데이터 정리
+var tracks = DATA.map(function(t){
+  return { name:t.name, mgr:t.mgr, headcount:t.headcount, color:t.color,
+    steps:t.steps.map(function(s){ return { label:s[0], s:dnum(s[1]), e:dnum(s[2]||s[1]), kind:kind(s[0]) }; }) };
+});
+
+function status(t, T){
+  var cur=-1, next=-1, i;
+  for (i=0;i<t.steps.length;i++){ if (t.steps[i].s<=T && t.steps[i].e>=T){ cur=i; break; } }
+  for (i=0;i<t.steps.length;i++){ if (t.steps[i].s>T){ next=i; break; } }
+  return {cur:cur, next:next};
+}
+function rangeTxt(st){ return st.s===st.e ? md(st.s) : md(st.s)+' ~ '+md(st.e); }
+
+function renderCards(T){
+  $('cards').innerHTML = tracks.map(function(t){
+    var s=status(t,T), html='';
+    if (s.cur>=0){
+      var c=t.steps[s.cur];
+      var left = c.e>T ? ' · '+(c.e-T)+'일 남음' : (c.s!==c.e?' · 마지막 날':'');
+      html='<span class="pill live">진행 중</span>'+esc(c.label)+'<span style="color:#93A3B4;font-weight:500;font-size:22px;margin-left:10px">'+rangeTxt(c)+left+'</span>';
+    } else if (s.next>=0){
+      var n=t.steps[s.next], d=n.s-T;
+      html='<span class="pill '+(d<=3?'soon':'')+'">D-'+d+'</span>'+esc(n.label)+'<span style="color:#93A3B4;font-weight:500;font-size:22px;margin-left:10px">'+rangeTxt(n)+'</span>';
+    } else html='<span class="pill done">전형 종료</span>';
+    var steps=t.steps.map(function(st,i){
+      var cls = (s.cur===i) ? 'cur' : (st.e<T ? 'done' : '');
+      return '<div class="st '+cls+'"><i></i><span>'+esc(st.label)+'</span><em>'+(st.s===st.e?mdShort(st.s):mdShort(st.s)+'~'+mdShort(st.e))+'</em></div>';
+    }).join('');
+    return '<div class="card" style="--c:'+t.color+';border-top-color:'+t.color+'">'+
+      '<div class="h"><div class="nm">'+esc(t.name)+'</div><div class="hc"><b>'+t.headcount.toLocaleString()+'</b>명</div></div>'+
+      '<div class="mgr">담당 '+esc(t.mgr.join(' · '))+'</div>'+
+      '<div class="now">'+html+'</div><div class="steps'+(t.steps.length>5?' many':'')+'">'+steps+'</div></div>';
+  }).join('');
+  // CSS 변수를 지원하지 않는 오래된 TV 브라우저용 색상 보정
+  var cards=document.querySelectorAll('.card');
+  for (var i=0;i<cards.length;i++){
+    var col=tracks[i].color, sts=cards[i].querySelectorAll('.st');
+    for (var j=0;j<sts.length;j++){ var dot=sts[j].querySelector('i');
+      if (/done/.test(sts[j].className)) dot.style.background=col;
+      if (/cur/.test(sts[j].className)) dot.style.borderColor=col; }
+  }
+}
+
+function renderTimeline(T){
+  var from=T-14, to=T+42, span=to-from+1;
+  var W = $('tl').clientWidth - 150;
+  var px = W/span;
+  var axis='';
+  for (var n=from;n<=to;n++){
+    var d=fromNum(n);
+    if (d.getUTCDay()===1) axis+='<div class="'+(d.getUTCDate()<=7?'m':'')+'" style="left:'+((n-from)*px)+'px">'+mdShort(n)+'</div>';
+  }
+  var rows=tracks.map(function(t,r){
+    var bars=t.steps.map(function(st){
+      if (st.e<from || st.s>to) return '';
+      var s=Math.max(st.s,from), e=Math.min(st.e,to);
+      var past = st.e<T ? ' past' : '';
+      if (st.kind==='point' && st.s===st.e)
+        return '<div class="bar pt'+past+'" style="left:'+((s-from)*px+px/2-8)+'px;border-color:'+t.color+'" title="'+esc(st.label)+'"></div>';
+      var w=Math.max((e-s+1)*px-2, 8);
+      var txt = w>70 ? esc(st.label) : '';
+      return '<div class="bar'+past+'" style="left:'+((s-from)*px+1)+'px;width:'+w+'px;background:'+t.color+'">'+txt+'</div>';
+    }).join('');
+    return '<div class="tl-row" style="top:'+(36+r*46)+'px;--c:'+t.color+'"><div class="lb">'+esc(t.name)+'</div><div class="tl-track">'+bars+'</div></div>';
+  }).join('');
+  var tx=150+(T-from)*px+px/2;
+  $('tl').innerHTML='<div class="tl-axis">'+axis+'</div>'+rows+'<div class="today-ln" style="left:'+tx+'px"><span>오늘</span></div>';
+}
+
+function allEvents(){
+  var out=[];
+  tracks.forEach(function(t){ t.steps.forEach(function(st){ out.push({t:t, st:st}); }); });
+  return out;
+}
+function agItem(x, T, tag, hot){
+  var st=x.st;
+  var when = st.s===st.e ? md(st.s) : md(st.s)+'<small>~'+md(st.e)+'</small>';
+  return '<li><div class="d">'+when+'</div><span class="dot" style="background:'+x.t.color+'"></span>'+
+    '<div class="w"><b>'+esc(x.t.name)+'</b> '+esc(st.label)+'<div>담당 '+esc(x.t.mgr.join(' · '))+'</div></div>'+
+    (tag?'<span class="dd'+(hot?' hot':'')+'">'+tag+'</span>':'')+'</li>';
+}
+function renderAgenda(T){
+  var ev=allEvents();
+  var now=ev.filter(function(x){ return x.st.s<=T && x.st.e>=T; });
+  $('today').innerHTML = now.length ? now.map(function(x){
+    var tag = x.st.s===x.st.e ? '오늘' : (x.st.e===T ? '마지막 날' : (T-x.st.s+1)+'/'+(x.st.e-x.st.s+1)+'일차');
+    return agItem(x,T,tag,false);
+  }).join('') : '<li class="empty">오늘 진행되는 전형이 없습니다.</li>';
+  var soon=ev.filter(function(x){ return x.st.s>T && x.st.s<=T+14; }).sort(function(a,b){ return a.st.s-b.st.s; });
+  var max = now.length>2 ? 4 : 6;
+  $('soon').innerHTML = soon.length ? soon.slice(0,max).map(function(x){ var d=x.st.s-T; return agItem(x,T,'D-'+d,d<=3); }).join('')
+    + (soon.length>max?'<li class="empty">외 '+(soon.length-max)+'건</li>':'') : '<li class="empty">2주 안에 시작하는 전형이 없습니다.</li>';
+}
+function renderClash(T){
+  var heavy=allEvents().filter(function(x){ return (x.st.kind==='exam'||x.st.kind==='interview') && x.st.e>=T; });
+  var out=[];
+  for (var i=0;i<heavy.length;i++) for (var j=i+1;j<heavy.length;j++){
+    var a=heavy[i], b=heavy[j]; if (a.t===b.t) continue;
+    var s=Math.max(a.st.s,b.st.s,T), e=Math.min(a.st.e,b.st.e);
+    if (s<=e) out.push({a:a,b:b,s:s,e:e});
+  }
+  out.sort(function(x,y){ return x.s-y.s; });
+  $('clash').innerHTML = out.length ? out.slice(0,3).map(function(c){
+    return '<li><b>'+(c.s===c.e?md(c.s):md(c.s)+'~'+md(c.e))+'</b>'+esc(c.a.t.name)+' '+esc(c.a.st.label)+' / '+esc(c.b.t.name)+' '+esc(c.b.st.label)+'</li>';
+  }).join('') + (out.length>3?'<li class="empty" style="background:none;padding:0 2px">외 '+(out.length-3)+'건</li>':'')
+  : '<li class="empty" style="background:none;color:#6F8091">겹치는 필기·면접이 없습니다.</li>';
+}
+
+var lastDay=null;
+function renderAll(){
+  var T=todayNum(), d=fromNum(T);
+  $('date').innerHTML=(d.getUTCMonth()+1)+'.'+d.getUTCDate()+'<small>'+WD[d.getUTCDay()]+'요일</small>';
+  var total=tracks.reduce(function(s,t){ return s+t.headcount; },0);
+  var live=tracks.filter(function(t){ var s=status(t,T); return s.cur>=0 || s.next>=0; }).length;
+  $('sub').textContent='진행 중인 채용 '+live+'건 · 채용예정 '+total.toLocaleString()+'명';
+  $('foot').textContent='기준 데이터 '+UPDATED+' · 자동 새로고침';
+  renderCards(T); renderTimeline(T); renderAgenda(T); renderClash(T);
+  lastDay=T;
+}
+function tick(){
+  var t=new Date();
+  $('clock').textContent=pad(t.getHours())+':'+pad(t.getMinutes());
+  if (todayNum()!==lastDay) renderAll();   // 자정이 지나면 D-day 다시 계산
+}
+function fit(){
+  var s=Math.min(window.innerWidth/1920, window.innerHeight/1080);
+  var st=$('stage');
+  st.style.transform='scale('+s+')';
+  st.style.webkitTransform='scale('+s+')';
+  st.style.left=((window.innerWidth-1920*s)/2)+'px';
+  st.style.top=((window.innerHeight-1080*s)/2)+'px';
+}
+window.addEventListener('resize', fit);
+fit(); renderAll(); tick();
+setInterval(tick, 20000);
+// 30분마다 새로고침: 새로 올린 버전이 TV에 자동 반영됩니다.
+setInterval(function(){ location.reload(); }, 30*60*1000);
+</script>
+</body>
+</html>
