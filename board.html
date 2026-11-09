@@ -68,7 +68,7 @@ body{color:#E8EEF4;font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",
 .tl-track{position:absolute;left:150px;right:0;top:0;bottom:0}
 .bar{position:absolute;top:8px;height:28px;border-radius:5px;background:var(--c);font-size:16px;font-weight:700;color:#0B1118;line-height:28px;padding:0 6px;white-space:nowrap;overflow:hidden}
 .bar.past{opacity:.35}
-.bar.pt{width:16px;height:16px;top:14px;border-radius:50%;padding:0;background:#0B1118;border:4px solid var(--c)}
+.bar.pt{width:18px;height:18px;top:13px;border-radius:50%;padding:0;background:#0B1118;border:4px solid var(--c)}
 .today-ln{position:absolute;top:0;bottom:0;width:3px;background:#FF5A4E;z-index:2}
 .today-ln span{position:absolute;bottom:-4px;left:6px;font-size:16px;font-weight:800;color:#FF6A5C;white-space:nowrap}
 
@@ -106,7 +106,7 @@ body{color:#E8EEF4;font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",
   <div class="main">
     <div class="left">
       <div class="cards" id="cards"></div>
-      <div class="tl"><h2>전형 타임라인 <span style="font-weight:400;color:#6F8091;font-size:19px">지난 2주 ~ 앞으로 6주</span></h2><div class="tl-body" id="tl"></div></div>
+      <div class="tl"><h2>전형 타임라인 <span style="font-weight:400;color:#6F8091;font-size:19px">지난 2주 ~ 앞으로 6주 · ○ 합격자 발표 ● 그 외 하루 일정</span></h2><div class="tl-body" id="tl"></div></div>
     </div>
     <div class="right">
       <div class="panel today-box"><h2>오늘</h2><ul class="ag" id="today"></ul></div>
@@ -225,8 +225,11 @@ function renderTimeline(T){
       if (st.e<from || st.s>to) return '';
       var s=Math.max(st.s,from), e=Math.min(st.e,to);
       var past = st.e<T ? ' past' : '';
-      if (st.kind==='point' && st.s===st.e)
-        return '<div class="bar pt'+past+'" style="left:'+((s-from)*px+px/2-8)+'px;border-color:'+t.color+'" title="'+esc(st.label)+'"></div>';
+      if (st.s===st.e){
+        // 하루짜리 일정은 동그라미: 합격자 발표만 빈 원, 나머지는 채운 원
+        var fill = !/발표/.test(st.label);
+        return '<div class="bar pt'+past+'" style="left:'+((s-from)*px+px/2-9)+'px;border-color:'+t.color+(fill?';background:'+t.color:'')+'" title="'+esc(st.label)+'"></div>';
+      }
       var w=Math.max((e-s+1)*px-2, 8);
       var txt = w>70 ? esc(st.label) : '';
       return '<div class="bar'+past+'" style="left:'+((s-from)*px+1)+'px;width:'+w+'px;background:'+t.color+'">'+txt+'</div>';
