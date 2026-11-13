@@ -93,6 +93,46 @@ body{color:#E8EEF4;font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",
 .clash li{display:block;background:#2A2010;color:#FFC56B;border-radius:9px;padding:10px 14px;margin-bottom:8px;font-size:19px;line-height:1.35}
 .clash li b{font-size:21px;margin-right:8px}
 .foot{position:absolute;right:56px;bottom:12px;font-size:15px;color:#5A6A7A}
+
+/* ===== 집중 보기(대기 화면) ===== */
+#spot{position:absolute;left:0;top:0;width:1920px;height:1080px;background:#0B1118;z-index:20;opacity:0;visibility:hidden;
+  -webkit-transition:opacity .8s,visibility .8s;transition:opacity .8s,visibility .8s;overflow:hidden}
+#spot.on{opacity:1;visibility:visible}
+.sp-slide{position:absolute;left:0;top:0;width:1920px;height:1080px;padding:64px 96px 0;box-sizing:border-box;opacity:0;
+  -webkit-transform:translateX(80px);transform:translateX(80px);-webkit-transition:opacity .9s,-webkit-transform .9s;transition:opacity .9s,transform .9s}
+.sp-slide.in{opacity:1;-webkit-transform:none;transform:none}
+.sp-slide.out{opacity:0;-webkit-transform:translateX(-80px);transform:translateX(-80px)}
+.sp-glow{position:absolute;right:-260px;top:-260px;width:900px;height:900px;border-radius:50%;opacity:.16;
+  -webkit-animation:drift 14s ease-in-out infinite alternate;animation:drift 14s ease-in-out infinite alternate}
+@-webkit-keyframes drift{from{-webkit-transform:translate(0,0) scale(1)}to{-webkit-transform:translate(-120px,80px) scale(1.15)}}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(-120px,80px) scale(1.15)}}
+.sp-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative}
+.sp-name{font-size:150px;font-weight:800;line-height:1;letter-spacing:-4px}
+.sp-mgr{font-size:34px;color:#93A3B4;margin-top:18px}
+.sp-hc{text-align:right}
+.sp-hc b{display:block;font-size:150px;font-weight:800;line-height:1;letter-spacing:-4px}
+.sp-hc span{font-size:34px;color:#93A3B4}
+.sp-now{position:relative;margin-top:62px;display:flex;align-items:center;font-size:64px;font-weight:800}
+.sp-now .pill{font-size:44px;padding:10px 24px;border-radius:14px;margin-right:28px}
+.sp-now small{font-size:40px;font-weight:500;color:#93A3B4;margin-left:26px}
+.sp-steps{position:relative;display:flex;margin-top:96px}
+.sp-steps .st{padding-top:48px}
+.sp-steps .st:before{top:17px;height:8px}
+.sp-steps .st i{width:40px;height:40px;margin-left:-20px;border-width:5px;border-color:#0B1118}
+.sp-steps .st.cur i{width:54px;height:54px;margin-left:-27px;top:-7px;-webkit-animation:pulse 1.8s ease-in-out infinite;animation:pulse 1.8s ease-in-out infinite}
+@-webkit-keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35)}50%{box-shadow:0 0 0 22px rgba(255,255,255,0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35)}50%{box-shadow:0 0 0 22px rgba(255,255,255,0)}}
+.sp-steps .st span{font-size:32px;margin-top:6px}
+.sp-steps .st em{font-size:26px;margin-top:4px}
+.sp-bottom{position:absolute;left:96px;right:96px;bottom:54px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.sp-dots span{display:inline-block;width:16px;height:16px;border-radius:50%;background:#2E3B48;margin-right:14px}
+.sp-dots span.on{background:#E8EEF4;width:44px;border-radius:8px}
+.sp-hint{font-size:28px;color:#93A3B4}
+.sp-hint b{color:#E8EEF4;border:2px solid #5A6A7A;border-radius:8px;padding:2px 12px;margin:0 6px}
+.sp-clock{position:absolute;right:96px;top:-6px;font-size:40px;color:#93A3B4;font-weight:700}
+.sp-prog{position:absolute;left:0;bottom:0;height:6px;width:0;z-index:2}
+.sp-prog.run{width:100%;-webkit-transition:width linear;transition:width linear}
+@media (prefers-reduced-motion:reduce){.sp-glow,.sp-steps .st.cur i{-webkit-animation:none;animation:none}}
 </style>
 </head>
 <body>
@@ -116,6 +156,7 @@ body{color:#E8EEF4;font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",
     </div>
   </div>
   <div class="foot" id="foot"></div>
+  <div id="spot"><div id="spSlides"></div><div class="sp-bottom"><div class="sp-dots" id="spDots"></div><div class="sp-hint">리모컨<b>OK</b>전체 일정 보기</div></div><div class="sp-prog" id="spProg"></div></div>
 </div>
 
 <script>
@@ -303,9 +344,59 @@ function fit(){
 }
 window.addEventListener('resize', fit);
 fit(); renderAll(); tick();
+
+/* ===== 집중 보기: 3분간 조작이 없으면 채용별 화면을 12초씩 번갈아 크게 보여줍니다 ===== */
+var IDLE_MS = 3*60*1000, SLIDE_MS = 12000;
+var idleTimer=null, slideTimer=null, spotOn=false, spIdx=0;
+function slideHtml(t, T){
+  var s=status(t,T), now='';
+  if (s.cur>=0){ var c=t.steps[s.cur];
+    var left = c.e>T ? ' · '+(c.e-T)+'일 남음' : (c.s!==c.e?' · 마지막 날':'');
+    now='<span class="pill live">진행 중</span>'+esc(c.label)+'<small>'+rangeTxt(c)+left+'</small>';
+  } else if (s.next>=0){ var n=t.steps[s.next], d=n.s-T;
+    now='<span class="pill '+(d<=3?'soon':'')+'">D-'+d+'</span>'+esc(n.label)+'<small>'+rangeTxt(n)+'</small>';
+  } else now='<span class="pill done">전형 종료</span>';
+  var steps=t.steps.map(function(st,i){
+    var cls=(s.cur===i)?'cur':(st.e<T?'done':'');
+    var dot = cls==='done' ? 'background:'+t.color : (cls==='cur' ? 'border-color:'+t.color : '');
+    var line = (cls==='done'||cls==='cur') ? 'background:'+t.color : '';
+    return '<div class="st '+cls+'"><i style="'+dot+'"></i><span>'+esc(st.label)+'</span><em>'+(st.s===st.e?mdShort(st.s):mdShort(st.s)+'~'+mdShort(st.e))+'</em></div>';
+  }).join('');
+  return '<div class="sp-slide" style="--c:'+t.color+'"><div class="sp-glow" style="background:'+t.color+'"></div>'+
+    '<div style="position:absolute;left:0;top:0;bottom:0;width:18px;background:'+t.color+'"></div>'+
+    '<div class="sp-top"><div><div class="sp-name">'+esc(t.name)+'</div><div class="sp-mgr">담당 '+esc(t.mgr.join(' · '))+'</div></div>'+
+    '<div class="sp-hc"><b>'+t.headcount.toLocaleString()+'</b><span>명 채용</span></div></div>'+
+    '<div class="sp-now">'+now+'</div><div class="sp-steps">'+steps+'</div></div>';
+}
+function showSlide(){
+  var T=todayNum(), t=tracks[spIdx % tracks.length];
+  var box=$('spSlides'), old=box.querySelector('.sp-slide.in');
+  box.insertAdjacentHTML('beforeend', slideHtml(t,T));
+  var el=box.lastChild;
+  setTimeout(function(){ el.className='sp-slide in'; }, 30);
+  if (old){ old.className='sp-slide out'; setTimeout(function(){ if (old.parentNode) old.parentNode.removeChild(old); }, 1000); }
+  $('spDots').innerHTML=tracks.map(function(x,i){ return '<span class="'+(i===spIdx%tracks.length?'on':'')+'"></span>'; }).join('');
+  var pg=$('spProg'); pg.style.background=t.color; pg.className='sp-prog'; pg.style.transitionDuration='0ms'; pg.style.webkitTransitionDuration='0ms';
+  setTimeout(function(){ pg.style.transitionDuration=SLIDE_MS+'ms'; pg.style.webkitTransitionDuration=SLIDE_MS+'ms'; pg.className='sp-prog run'; }, 50);
+  spIdx++;
+}
+function startSpot(){
+  if (spotOn || !tracks.length) return;
+  spotOn=true; $('spot').className='on'; showSlide();
+  slideTimer=setInterval(showSlide, SLIDE_MS);
+}
+function stopSpot(){
+  if (spotOn){ spotOn=false; clearInterval(slideTimer); $('spot').className=''; setTimeout(function(){ if(!spotOn) $('spSlides').innerHTML=''; }, 900); }
+  clearTimeout(idleTimer); idleTimer=setTimeout(startSpot, IDLE_MS);
+}
+// 리모컨 OK·아무 키·클릭 → 전체 화면으로 돌아가고 3분 타이머를 다시 시작
+window.addEventListener('message', function(e){ if (e.data==='recruit-tv:wake') stopSpot(); });
+document.addEventListener('keydown', stopSpot);
+document.addEventListener('click', stopSpot);
+stopSpot();
 setInterval(tick, 20000);
 // 30분마다 새로고침: 새로 올린 버전이 TV에 자동 반영됩니다.
-setInterval(function(){ location.reload(); }, 30*60*1000);
+setInterval(function(){ location.replace(location.pathname+'?v='+Date.now()); }, 30*60*1000);  // 캐시 없이 최신본을 받아옵니다
 </script>
 </body>
 </html>

@@ -35,8 +35,11 @@ document.addEventListener('webkitfullscreenchange', sync);
 document.addEventListener('keydown', function(e){
   var k = e.key || '', c = e.keyCode;
   if (k === 'Enter' || k === ' ' || c === 13 || c === 32 || c === 415) goFull();
+  wake();
 });
-document.addEventListener('click', goFull);
+document.addEventListener('click', function(){ goFull(); wake(); });
+// 리모컨 입력을 안쪽 일정 화면에 전달(집중 보기 → 전체 일정)
+function wake(){ try { document.getElementById('board').contentWindow.postMessage('recruit-tv:wake','*'); } catch(e){} }
 // 안쪽 화면이 다시 읽힌 뒤에도 리모컨 입력이 바깥 화면으로 오도록 포커스를 되돌립니다.
 document.getElementById('board').addEventListener('load', function(){ try { window.focus(); } catch(e){} });
 // 전체화면을 지원하지 않는 브라우저면 안내만 바꿉니다.
