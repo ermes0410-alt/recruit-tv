@@ -164,7 +164,7 @@ body{color:#E8EEF4;font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",
    채용 기초데이터 — 엑셀과 같은 순서입니다.
    일정이 바뀌면 이 부분만 고치면 됩니다. (날짜는 'YYYY-MM-DD', 하루짜리는 시작=종료)
    ===================================================================== */
-var UPDATED = '2026-11-09';
+var UPDATED = '2026-11-17';
 var DATA = [
   { name:'대졸', mgr:['서영남','박규태'], headcount:490, color:'#5B8CFF', steps:[
     ['지원서접수','2026-09-09','2026-09-16'],
@@ -172,11 +172,6 @@ var DATA = [
     ['필기전형','2026-10-17','2026-10-17'],
     ['면접전형','2026-11-09','2026-11-27'],
     ['합격자발표','2026-12-03','2026-12-03'] ]},
-  { name:'보훈', mgr:['이종혁','변성준'], headcount:20, color:'#B48CFF', steps:[
-    ['지원서접수','2026-09-29','2026-10-06'],
-    ['필기전형','2026-10-30','2026-10-30'],
-    ['종합면접','2026-11-05','2026-11-06'],
-    ['합격자발표','2026-11-18','2026-11-18'] ]},
   { name:'4전문', mgr:['문한길','이화정'], headcount:7, color:'#3FD0B0', steps:[
     ['지원서접수','2026-09-30','2026-10-06'],
     ['서류전형','2026-10-27','2026-10-27'],
@@ -188,7 +183,14 @@ var DATA = [
     ['지원서접수','2026-10-29','2026-11-05'],
     ['서류전형','2026-11-09','2026-11-09'],
     ['종합면접','2026-11-16','2026-11-20'],
-    ['합격자발표','2026-11-26','2026-11-26'] ]}
+    ['합격자발표','2026-11-26','2026-11-26'] ]},
+  // promo:true → 채용인원이 아니라 승진인원으로 표시 (채용예정 합계에서도 빠집니다)
+  { name:'3승진', mgr:['안형욱','이화정'], headcount:287, promo:true, color:'#B48CFF', steps:[
+    ['지원서접수','2026-11-17','2026-11-19'],
+    ['출제','2026-11-30','2026-12-04'],
+    ['OPR','2026-12-05','2026-12-05'],
+    ['채점','2026-12-07','2026-12-10'],
+    ['승진자발표','2026-12-17','2026-12-17'] ]}
 ];
 /* ===================================================================== */
 
@@ -211,7 +213,7 @@ function kind(label){
 
 // 데이터 정리
 var tracks = DATA.map(function(t){
-  return { name:t.name, mgr:t.mgr, headcount:t.headcount, color:t.color,
+  return { name:t.name, mgr:t.mgr, headcount:t.headcount, promo:!!t.promo, color:t.color,
     steps:t.steps.map(function(s){ return { label:s[0], s:dnum(s[1]), e:dnum(s[2]||s[1]), kind:kind(s[0]) }; }) };
 });
 
@@ -239,7 +241,7 @@ function renderCards(T){
       return '<div class="st '+cls+'"><i></i><span>'+esc(st.label)+'</span><em>'+(st.s===st.e?mdShort(st.s):mdShort(st.s)+'~'+mdShort(st.e))+'</em></div>';
     }).join('');
     return '<div class="card" style="--c:'+t.color+';border-top-color:'+t.color+'">'+
-      '<div class="h"><div class="nm">'+esc(t.name)+'</div><div class="hc"><b>'+t.headcount.toLocaleString()+'</b>명</div></div>'+
+      '<div class="h"><div class="nm">'+esc(t.name)+'</div><div class="hc"><b>'+t.headcount.toLocaleString()+'</b>명'+(t.promo?' 승진':'')+'</div></div>'+
       '<div class="mgr">담당 '+esc(t.mgr.join(' · '))+'</div>'+
       '<div class="now">'+html+'</div><div class="steps'+(t.steps.length>5?' many':'')+'">'+steps+'</div></div>';
   }).join('');
@@ -322,9 +324,10 @@ var lastDay=null;
 function renderAll(){
   var T=todayNum(), d=fromNum(T);
   $('date').innerHTML=(d.getUTCMonth()+1)+'.'+d.getUTCDate()+'<small>'+WD[d.getUTCDay()]+'요일</small>';
-  var total=tracks.reduce(function(s,t){ return s+t.headcount; },0);
+  var total=0, promo=0;
+  tracks.forEach(function(t){ if (t.promo) promo+=t.headcount; else total+=t.headcount; });
   var live=tracks.filter(function(t){ var s=status(t,T); return s.cur>=0 || s.next>=0; }).length;
-  $('sub').textContent='진행 중인 채용 '+live+'건 · 채용예정 '+total.toLocaleString()+'명';
+  $('sub').textContent='진행 중인 전형 '+live+'건 · 채용예정 '+total.toLocaleString()+'명'+(promo?' · 승진예정 '+promo.toLocaleString()+'명':'');
   $('foot').textContent='기준 데이터 '+UPDATED+' · 자동 새로고침';
   renderCards(T); renderTimeline(T); renderAgenda(T); renderClash(T);
   lastDay=T;
@@ -365,7 +368,7 @@ function slideHtml(t, T){
   return '<div class="sp-slide" style="--c:'+t.color+'"><div class="sp-glow" style="background:'+t.color+'"></div>'+
     '<div style="position:absolute;left:0;top:0;bottom:0;width:18px;background:'+t.color+'"></div>'+
     '<div class="sp-top"><div><div class="sp-name">'+esc(t.name)+'</div><div class="sp-mgr">담당 '+esc(t.mgr.join(' · '))+'</div></div>'+
-    '<div class="sp-hc"><b>'+t.headcount.toLocaleString()+'</b><span>명 채용</span></div></div>'+
+    '<div class="sp-hc"><b>'+t.headcount.toLocaleString()+'</b><span>명 '+(t.promo?'승진':'채용')+'</span></div></div>'+
     '<div class="sp-now">'+now+'</div><div class="sp-steps">'+steps+'</div></div>';
 }
 function showSlide(){
